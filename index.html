@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SleepScape - Ultimate Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@300;500;700;900&display=swap');
+
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background-color: #020617; /* Very Dark Blue */
+            color: #94a3b8;
+            overflow: hidden;
+            transition: background-color 2s ease;
+        }
+
+        /* Ambient Background Animation */
+        .ambient-glow {
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            background: radial-gradient(circle, rgba(30, 58, 138, 0.15) 0%, rgba(2, 6, 23, 0) 70%);
+            top: -25%;
+            left: -25%;
+            transition: all 0.5s ease;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Breathing Animation State */
+        .ambient-glow.breathing-mode {
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.3) 0%, rgba(2, 6, 23, 0) 60%);
+            animation: breathCycle 19s infinite ease-in-out; /* 4-7-8 technique approx doubled */
+        }
+
+        @keyframes breathCycle {
+            0% { transform: scale(0.8); opacity: 0.3; }   /* Inhale start */
+            20% { transform: scale(1.2); opacity: 0.8; }  /* Inhale done (4s) */
+            55% { transform: scale(1.2); opacity: 0.8; }  /* Hold (7s) */
+            100% { transform: scale(0.8); opacity: 0.3; } /* Exhale (8s) */
+        }
+
+        /* Glass Cards */
+        .sound-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .sound-card:hover {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(56, 189, 248, 0.2);
+        }
+
+        .active-card {
+            border-color: rgba(56, 189, 248, 0.5);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+        }
+
+        /* Special Void Card */
+        .void-card {
+            border-color: rgba(139, 92, 246, 0.3);
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(46, 16, 101, 0.4));
+        }
+        .void-card.active-card {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.2);
+        }
+
+        /* Preset Chips */
+        .preset-chip {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.2s;
+        }
+        .preset-chip:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.5);
+            color: white;
+        }
+
+        /* Custom Sliders */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #334155;
+            border-radius: 2px;
+        }
+
+        /* Sleep Timer Visuals */
+        .timer-btn.active {
+            background-color: #38bdf8;
+            color: #0f172a;
+        }
+
+        /* Starry Night Effect */
+        .stars {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+            z-index: -1;
+            opacity: 0.3;
+            animation: starMove 200s linear infinite;
+        }
+        @keyframes starMove {
+            from { transform: translateY(0); }
+            to { transform: translateY(-550px); }
+        }
+
+        /* Scrollbar hide */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col items-center justify-center relative">
+
+    <div class="stars"></div>
+    <div id="glowBg" class="ambient-glow"></div>
+
+    <!-- Header -->
+    <header class="absolute top-0 w-full p-6 z-20 flex justify-between items-center bg-gradient-to-b from-[#020617] to-transparent">
+        <div>
+            <h1 class="text-2xl font-light text-slate-100 tracking-widest">SleepScape</h1>
+            <p id="headerSub" class="text-xs text-slate-500">Ultimate Edition</p>
+        </div>
+        <div class="flex gap-3">
+            <button id="btnBreathe" class="w-10 h-10 rounded-full border border-slate-700 text-slate-400 hover:text-sky-400 hover:border-sky-400 transition flex items-center justify-center" title="4-7-8 Breathing Guide">
+                <i class="fa-solid fa-lungs"></i>
+            </button>
+            <button id="masterToggle" class="w-10 h-10 rounded-full border border-slate-700 text-slate-400 hover:text-white hover:border-slate-400 transition flex items-center justify-center">
+                <i class="fa-solid fa-power-off"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Mixer Grid (Scrollable) -->
+    <main class="z-10 w-full max-w-md px-6 h-full pt-20 pb-32 overflow-y-auto no-scrollbar relative">
+        
+        <!-- Breathing Guide Overlay Text -->
+        <div id="breatheGuide" class="hidden absolute top-0 left-0 w-full h-20 flex items-center justify-center pointer-events-none z-30 transition-opacity duration-500">
+            <p id="breathText" class="text-2xl font-light text-sky-200 tracking-[0.2em] uppercase opacity-80"></p>
+        </div>
+
+        <!-- Quick Presets -->
+        <div class="flex gap-2 mb-6 overflow-x-auto no-scrollbar py-1">
+            <button class="preset-chip px-3 py-1 rounded-full text-[10px] text-slate-300 whitespace-nowrap border-purple-500/50 text-purple-200" onclick="applyPreset('void')">🔮 The Void (New)</button>
+            <button class="preset-chip px-3 py-1 rounded-full text-[10px] text-slate-300 whitespace-nowrap" onclick="applyPreset('orbit')">🌀 Orbit (8D)</button>
+            <button class="preset-chip px-3 py-1 rounded-full text-[10px] text-slate-300 whitespace-nowrap" onclick="applyPreset('deep')">✨ Deep Sleep</button>
+            <button class="preset-chip px-3 py-1 rounded-full text-[10px] text-slate-300 whitespace-nowrap" onclick="applyPreset('nirvana')">🧘 Nirvana</button>
+            <button class="preset-chip px-3 py-1 rounded-full text-[10px] text-slate-300 whitespace-nowrap" onclick="applyPreset('clear')">❌ Clear All</button>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4">
+
+            <!-- Sound Card: THE VOID (Shepard Tone) -->
+            <div class="sound-card void-card p-4 flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-purple-900/50 flex items-center justify-center text-purple-300">
+                    <i class="fa-solid fa-infinity fa-flip" style="--fa-animation-duration: 3s;"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-bold text-purple-200">The Void (Infinite Fall)</span>
+                        <span class="text-xs text-purple-400" id="volVoid">0%</span>
+                    </div>
+                    <input type="range" class="volume-control" data-type="void" min="0" max="100" value="0">
+                </div>
+            </div>
+
+             <!-- Sound Card: Orbit 8D -->
+             <div class="sound-card p-4 flex items-center gap-4 border-cyan-500/20">
+                <div class="w-10 h-10 rounded-full bg-cyan-900/30 flex items-center justify-center text-cyan-400">
+                    <i class="fa-solid fa-circle-notch fa-spin-pulse" style="animation-duration: 5s;"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-cyan-200">Orbit (8D Audio)</span>
+                        <span class="text-xs text-slate-500" id="volOrbit">0%</span>
+                    </div>
+                    <input type="range" class="volume-control" data-type="orbit" min="0" max="100" value="0">
+                </div>
+            </div>
+        
+            <!-- Sound Card 1: Hujan Deras -->
+            <div class="sound-card p-4 flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-blue-900/30 flex items-center justify-center text-blue-400">
+                    <i class="fa-solid fa-cloud-showers-heavy"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-slate-300">Heavy Rain</span>
+                        <span class="text-xs text-slate-500" id="volRain">0%</span>
+                    </div>
+                    <input type="range" class="volume-control" data-type="rain" min="0" max="100" value="0">
+                </div>
+            </div>
+
+            <!-- Sound Card: Nirvana -->
+            <div class="sound-card p-4 flex items-center gap-4 border-emerald-500/20">
+                <div class="w-10 h-10 rounded-full bg-emerald-900/30 flex items-center justify-center text-emerald-400">
+                    <i class="fa-solid fa-spa"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-emerald-200">Nirvana (Euphoria 528Hz)</span>
+                        <span class="text-xs text-slate-500" id="volNirvana">0%</span>
+                    </div>
+                    <input type="range" class="volume-control" data-type="nirvana" min="0" max="100" value="0">
+                </div>
+            </div>
+
+            <!-- Sound Card: Campfire -->
+            <div class="sound-card p-4 flex items-center gap-4 border-orange-500/20">
+                <div class="w-10 h-10 rounded-full bg-orange-900/30 flex items-center justify-center text-orange-400">
+                    <i class="fa-solid fa-fire"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-orange-200">Campfire (Warmth)</span>
+                        <span class="text-xs text-slate-500" id="volFire">0%</span>
+                    </div>
+                    <input type="range" class="volume-control" data-type="fire" min="0" max="100" value="0">
+                </div>
+            </div>
+
+            <!-- Sound Card: Cosmic Drone -->
+            <div class="sound-card p-4 flex items-center gap-4 border-indigo-500/20">
+                <div class="w-10 h-10 rounded-full bg-indigo-900/30 flex items-center justify-center text-indigo-400">
+                    <i class="fa-solid fa-om"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-indigo-200">Cosmic Drone (Calm)</span>
+                        <span class="text-xs text-slate-500" id="volDrone">0%</span>
+                    </div>
+                    <input type="range" class="volume-control" data-type="drone" min="0" max="100" value="0">
+                </div>
+            </div>
+
+            <!-- Sound Card 2: Gelombang Theta -->
+            <div class="sound-card p-4 flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-purple-900/30 flex items-center justify-center text-purple-400">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-slate-300">Theta Waves (Dream)</span>
+                        <span class="text-xs text-slate-500" id="volTheta">0%</span>
+                    </div>
+                    <input type="range" class="volume-control" data-type="theta" min="0" max="100" value="0">
+                </div>
+            </div>
+
+            <!-- Sound Card: Delta Waves -->
+            <div class="sound-card p-4 flex items-center gap-4 border-rose-500/20">
+                <div class="w-10 h-10 rounded-full bg-rose-900/30 flex items-center justify-center text-rose-400">
+                    <i class="fa-solid fa-bed"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-rose-200">Delta Waves (Deep)</span>
+                        <span class="text-xs text-slate-500" id="volDelta">0%</span>
+                    </div>
+                    <input type="range" class="volume-control" data-type="delta" min="0" max="100" value="0">
+                </div>
+            </div>
+
+            <!-- Sound Card 3: Brown Noise (Blocker) -->
+            <div class="sound-card p-4 flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-amber-900/30 flex items-center justify-center text-amber-600">
+                    <i class="fa-solid fa-mountain"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-slate-300">Brown Noise (Blocker)</span>
+                        <span class="text-xs text-slate-500" id="volBrown">0%</span>
+                    </div>
+                    <input type="range" class="volume-control" data-type="brown" min="0" max="100" value="0">
+                </div>
+            </div>
+
+            <!-- Sound Card 4: Angin Malam -->
+            <div class="sound-card p-4 flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-teal-900/30 flex items-center justify-center text-teal-400">
+                    <i class="fa-solid fa-wind"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm font-medium text-slate-300">Night Wind</span>
+                        <span class="text-xs text-slate-500" id="volWind">0%</span>
+                    </div>
+                    <input type="range" class="volume-control" data-type="wind" min="0" max="100" value="0">
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Footer / Timer -->
+    <footer class="absolute bottom-0 w-full p-6 z-20 bg-gradient-to-t from-[#020617] via-[#020617] to-transparent">
+        <div class="max-w-md mx-auto">
+            <div class="text-center mb-3">
+                <p class="text-xs text-slate-500 mb-2 uppercase tracking-widest">Sleep Timer (Ear Saver)</p>
+                <div class="flex justify-center gap-3">
+                    <button class="timer-btn px-4 py-2 rounded-full border border-slate-800 text-xs hover:border-slate-500 transition" data-time="15">15m</button>
+                    <button class="timer-btn px-4 py-2 rounded-full border border-slate-800 text-xs hover:border-slate-500 transition" data-time="30">30m</button>
+                    <button class="timer-btn px-4 py-2 rounded-full border border-slate-800 text-xs hover:border-slate-500 transition" data-time="60">1h</button>
+                    <button class="timer-btn px-4 py-2 rounded-full border border-slate-800 text-xs hover:border-slate-500 transition active" data-time="0">∞ (Loop)</button>
+                </div>
+                <p id="timerDisplay" class="text-[10px] text-slate-600 mt-2 h-4"></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Overlay Start -->
+    <div id="startOverlay" class="fixed inset-0 bg-[#020617] z-50 flex flex-col items-center justify-center">
+        <div class="w-20 h-20 rounded-full bg-gradient-to-b from-blue-900 to-slate-900 flex items-center justify-center shadow-[0_0_50px_rgba(30,58,138,0.5)] mb-8 animate-pulse">
+            <i class="fa-solid fa-moon text-3xl text-blue-200"></i>
+        </div>
+        <h2 class="text-3xl text-white font-light mb-2">SleepScape</h2>
+        <p class="text-slate-400 mb-8 text-sm text-center px-4">Ultimate Edition<br><span class="text-xs opacity-50">Headphones Strongly Recommended</span></p>
+        <button id="btnInit" class="px-8 py-3 rounded-full bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 hover:text-white transition shadow-lg">
+            Mulai Relaksasi
+        </button>
+    </div>
+
+    <script>
+        // --- Audio Engine ---
+        let audioCtx;
+        const nodes = {}; // Store gain nodes
+        const sources = {}; // Store source nodes
+        let isPlaying = false;
+        let sleepTimer = null;
+        let breathingInterval = null;
+        let breathTimeouts = []; 
+        let voidFrame = null;
+
+        const startOverlay = document.getElementById('startOverlay');
+        const btnInit = document.getElementById('btnInit');
+        const masterToggle = document.getElementById('masterToggle');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const btnBreathe = document.getElementById('btnBreathe');
+        const glowBg = document.getElementById('glowBg');
+        const breathText = document.getElementById('breathText');
+        const breatheGuide = document.getElementById('breatheGuide');
+
+        // --- 1. Sound Generation Algorithms ---
+
+        // Helper: Create Noise Buffer
+        function createNoiseBuffer() {
+            if (!audioCtx) return;
+            const bufferSize = audioCtx.sampleRate * 2; // 2 seconds
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            return buffer;
+        }
+
+        // Generator: THE VOID (Shepard-Risset Glissando Illusion)
+        function createVoidSource(gainNode) {
+            const numOscs = 6; // Rich sound
+            const oscs = [];
+            const gains = [];
+            
+            // Speed of the fall
+            const speed = 0.08; 
+            const baseFreq = 80; // Low fundamental
+
+            // Create bank of oscillators
+            for(let i=0; i<numOscs; i++) {
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sine';
+                
+                // Stereo spread for each tone to make it immersive
+                const pan = audioCtx.createStereoPanner();
+                pan.pan.value = (Math.random() * 2) - 1; 
+
+                const g = audioCtx.createGain();
+                g.gain.value = 0;
+                
+                osc.connect(pan);
+                pan.connect(g);
+                g.connect(gainNode);
+                
+                osc.start();
+                oscs.push(osc);
+                gains.push(g);
+            }
+
+            const startTime = audioCtx.currentTime;
+
+            function update() {
+                const time = audioCtx.currentTime - startTime;
+                
+                for(let i=0; i<numOscs; i++) {
+                    let offset = i / numOscs;
+                    // Phase runs 0 to 1 repeatedly
+                    let phase = (time * speed + offset) % 1;
+                    
+                    // FALLING EFFECT: Map phase 0->1 to Freq High->Low
+                    // We use exponential mapping for octaves
+                    // Range: 4 Octaves down
+                    let p = 1 - phase; // Invert to fall
+                    let freq = baseFreq * Math.pow(2, p * 4);
+                    
+                    oscs[i].frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                    // VOLUME BELL CURVE (Shepard Window)
+                    // Volume is 0 at top and bottom frequencies, 1 in middle
+                    // Uses Sine window: sin(PI * phase)
+                    let vol = Math.sin(Math.PI * phase);
+                    vol = vol * vol * vol; // Sharper curve to hide the loop point
+                    
+                    // Smooth update
+                    gains[i].gain.setTargetAtTime(vol * 0.25, audioCtx.currentTime, 0.05);
+                }
+                
+                voidFrame = requestAnimationFrame(update);
+            }
+            
+            update(); // Start loop
+
+            return { stop: () => { 
+                cancelAnimationFrame(voidFrame); 
+                oscs.forEach(o => o.stop()); 
+            }};
+        }
+
+        // Generator: Orbit (8D Audio - Spatial Rotation)
+        function createOrbitSource(gainNode) {
+            // Complex tone generation
+            const osc1 = audioCtx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 220; // A3
+            const osc2 = audioCtx.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = 330; // E4
+            
+            // LFO for Tone modulation (pulsing)
+            const ampLfo = audioCtx.createOscillator();
+            ampLfo.frequency.value = 0.5;
+            const ampGain = audioCtx.createGain();
+            ampGain.gain.value = 0.3;
+            ampLfo.connect(ampGain);
+
+            // Mixer
+            const mix = audioCtx.createGain();
+            mix.gain.value = 0.4;
+            ampGain.connect(mix.gain);
+            ampLfo.start();
+
+            osc1.connect(mix);
+            osc2.connect(mix);
+
+            // 8D EFFECT: Circular Panning
+            const panner = audioCtx.createStereoPanner();
+            
+            // LFO for Panning (Left <-> Right)
+            const panLfo = audioCtx.createOscillator();
+            panLfo.type = 'sine';
+            panLfo.frequency.value = 0.15; // Speed of rotation
+            
+            panLfo.connect(panner.pan);
+
+            mix.connect(panner);
+            panner.connect(gainNode);
+
+            osc1.start(); osc2.start(); panLfo.start();
+            
+            return { stop: () => { osc1.stop(); osc2.stop(); panLfo.stop(); ampLfo.stop(); } };
+        }
+
+        // Generator: Rain
+        function createRainSource(gainNode) {
+            const buffer = createNoiseBuffer();
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            noise.loop = true;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass'; filter.frequency.value = 800; 
+            const modOsc = audioCtx.createOscillator(); modOsc.frequency.value = 0.2; 
+            const modGain = audioCtx.createGain(); modGain.gain.value = 200; 
+            modOsc.connect(modGain); modGain.connect(filter.frequency); modOsc.start();
+            noise.connect(filter); filter.connect(gainNode); noise.start();
+            return { stop: () => { noise.stop(); modOsc.stop(); } };
+        }
+
+        // Generator: Campfire
+        function createFireSource(gainNode) {
+            const bufferSize = audioCtx.sampleRate * 2;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            let lastOut = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                data[i] = (lastOut + (0.02 * white)) / 1.02; lastOut = data[i]; data[i] *= 3.5; 
+            }
+            const noise = audioCtx.createBufferSource(); noise.buffer = buffer; noise.loop = true;
+            const crackleBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 5, audioCtx.sampleRate);
+            const cData = crackleBuffer.getChannelData(0);
+            for (let i = 0; i < cData.length; i++) {
+                if (Math.random() > 0.995) cData[i] = (Math.random() * 2 - 1) * 0.8; else cData[i] = 0;
+            }
+            const crackle = audioCtx.createBufferSource(); crackle.buffer = crackleBuffer; crackle.loop = true;
+            const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 500;
+            noise.connect(filter); filter.connect(gainNode);
+            const cFilter = audioCtx.createBiquadFilter(); cFilter.type = 'highpass'; cFilter.frequency.value = 1000;
+            crackle.connect(cFilter); cFilter.connect(gainNode);
+            noise.start(); crackle.start();
+            return { stop: () => { noise.stop(); crackle.stop(); } };
+        }
+
+        // Generator: Nirvana (Euphoria 528Hz)
+        function createNirvanaSource(gainNode) {
+            const freqs = [528, 528 * 1.01, 528 * 0.99, 264]; 
+            const oscs = [];
+            const localGain = audioCtx.createGain(); localGain.gain.value = 0.4;
+            freqs.forEach(f => {
+                const osc = audioCtx.createOscillator(); osc.type = 'sine'; osc.frequency.value = f;
+                const panner = audioCtx.createStereoPanner(); panner.pan.value = (Math.random() * 2) - 1;
+                osc.connect(panner); panner.connect(localGain); osc.start(); oscs.push(osc);
+            });
+            const lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.15; 
+            const lfoGain = audioCtx.createGain(); lfoGain.gain.value = 0.2;
+            const mainAmp = audioCtx.createGain(); mainAmp.gain.value = 0.8;
+            lfo.connect(lfoGain); lfoGain.connect(mainAmp.gain); lfo.start();
+            localGain.connect(mainAmp); mainAmp.connect(gainNode);
+            return { stop: () => { oscs.forEach(o => o.stop()); lfo.stop(); } };
+        }
+
+        // Generator: Brown Noise
+        function createBrownSource(gainNode) {
+            const bufferSize = audioCtx.sampleRate * 2;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            let lastOut = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                data[i] = (lastOut + (0.02 * white)) / 1.02; lastOut = data[i]; data[i] *= 3.5; 
+            }
+            const noise = audioCtx.createBufferSource(); noise.buffer = buffer; noise.loop = true;
+            noise.connect(gainNode); noise.start();
+            return { stop: () => noise.stop() };
+        }
+
+        // Generator: Theta Waves
+        function createThetaSource(gainNode) {
+            const osc1 = audioCtx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 200;
+            const osc2 = audioCtx.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = 206;
+            const panner1 = audioCtx.createStereoPanner(); panner1.pan.value = -1;
+            const panner2 = audioCtx.createStereoPanner(); panner2.pan.value = 1;
+            osc1.connect(panner1); panner1.connect(gainNode); osc2.connect(panner2); panner2.connect(gainNode);
+            osc1.start(); osc2.start();
+            return { stop: () => { osc1.stop(); osc2.stop(); } };
+        }
+
+        // Generator: Delta Waves
+        function createDeltaSource(gainNode) {
+            const osc1 = audioCtx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 100;
+            const osc2 = audioCtx.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = 102;
+            const panner1 = audioCtx.createStereoPanner(); panner1.pan.value = -1;
+            const panner2 = audioCtx.createStereoPanner(); panner2.pan.value = 1;
+            osc1.connect(panner1); panner1.connect(gainNode); osc2.connect(panner2); panner2.connect(gainNode);
+            osc1.start(); osc2.start();
+            return { stop: () => { osc1.stop(); osc2.stop(); } };
+        }
+
+        // Generator: Cosmic Drone
+        function createDroneSource(gainNode) {
+            const osc1 = audioCtx.createOscillator(); osc1.type = 'triangle'; osc1.frequency.value = 110; 
+            const osc2 = audioCtx.createOscillator(); osc2.type = 'triangle'; osc2.frequency.value = 164.81; 
+            const osc3 = audioCtx.createOscillator(); osc3.type = 'triangle'; osc3.frequency.value = 220; 
+            osc1.detune.value = -5; osc3.detune.value = 5;
+            const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 400; 
+            const lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.1;
+            const lfoGain = audioCtx.createGain(); lfoGain.gain.value = 100;
+            lfo.connect(lfoGain); lfoGain.connect(filter.frequency); lfo.start();
+            const mixer = audioCtx.createGain(); mixer.gain.value = 0.3; 
+            osc1.connect(filter); osc2.connect(filter); osc3.connect(filter); filter.connect(mixer); mixer.connect(gainNode);
+            osc1.start(); osc2.start(); osc3.start();
+            return { stop: () => { osc1.stop(); osc2.stop(); osc3.stop(); lfo.stop(); } };
+        }
+
+        // Generator: Wind
+        function createWindSource(gainNode) {
+            const buffer = createNoiseBuffer(); const noise = audioCtx.createBufferSource(); noise.buffer = buffer; noise.loop = true;
+            const filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 400; filter.Q.value = 1; 
+            const lfo = audioCtx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.1; 
+            const lfoGain = audioCtx.createGain(); lfoGain.gain.value = 300; 
+            lfo.connect(lfoGain); lfoGain.connect(filter.frequency); lfo.start();
+            noise.connect(filter); filter.connect(gainNode); noise.start();
+            return { stop: () => { noise.stop(); lfo.stop(); } };
+        }
+
+
+        // --- 2. Initialization & UI Logic ---
+
+        btnInit.addEventListener('click', () => {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                setupAudioGraph();
+            }
+            startOverlay.style.opacity = '0';
+            setTimeout(() => startOverlay.style.display = 'none', 500);
+            isPlaying = true;
+            applyPreset('void'); // Default to the new VOID feature
+        });
+
+        function setupAudioGraph() {
+            // Initialize Gain Nodes
+            ['rain', 'theta', 'delta', 'drone', 'brown', 'wind', 'fire', 'nirvana', 'orbit', 'void'].forEach(type => {
+                const g = audioCtx.createGain();
+                g.gain.value = 0; 
+                g.connect(audioCtx.destination);
+                nodes[type] = g;
+            });
+
+            // Start Sources
+            sources['void'] = createVoidSource(nodes['void']);
+            sources['orbit'] = createOrbitSource(nodes['orbit']);
+            sources['rain'] = createRainSource(nodes['rain']);
+            sources['theta'] = createThetaSource(nodes['theta']);
+            sources['delta'] = createDeltaSource(nodes['delta']); 
+            sources['drone'] = createDroneSource(nodes['drone']); 
+            sources['brown'] = createBrownSource(nodes['brown']);
+            sources['wind'] = createWindSource(nodes['wind']);
+            sources['fire'] = createFireSource(nodes['fire']);
+            sources['nirvana'] = createNirvanaSource(nodes['nirvana']);
+        }
+
+        function setVolume(type, val) {
+            if (!nodes[type]) return;
+            nodes[type].gain.setTargetAtTime(val / 100, audioCtx.currentTime, 0.5);
+            
+            const slider = document.querySelector(`input[data-type="${type}"]`);
+            if (slider) slider.value = val;
+            
+            const displayId = 'vol' + type.charAt(0).toUpperCase() + type.slice(1);
+            const textDisplay = document.getElementById(displayId);
+            if(textDisplay) textDisplay.innerText = val + "%";
+
+            const card = slider?.closest('.sound-card');
+            if (card) {
+                if (val > 0) card.classList.add('active-card');
+                else card.classList.remove('active-card');
+            }
+        }
+
+        // --- Presets Logic ---
+        window.applyPreset = (preset) => {
+            ['rain', 'theta', 'delta', 'drone', 'brown', 'wind', 'fire', 'nirvana', 'orbit', 'void'].forEach(t => setVolume(t, 0));
+
+            if (preset === 'void') {
+                setVolume('void', 80);
+                setVolume('drone', 15);
+            } else if (preset === 'orbit') {
+                setVolume('orbit', 70);
+                setVolume('drone', 20);
+                setVolume('wind', 10);
+            } else if (preset === 'deep') {
+                setVolume('delta', 60);
+                setVolume('drone', 30);
+                setVolume('rain', 10);
+            } else if (preset === 'nirvana') {
+                setVolume('nirvana', 80);
+                setVolume('wind', 10);
+                setVolume('theta', 20);
+            }
+        }
+
+        // --- Event Listeners ---
+
+        document.querySelectorAll('.volume-control').forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                const type = e.target.getAttribute('data-type');
+                setVolume(type, e.target.value);
+            });
+        });
+
+        masterToggle.addEventListener('click', () => {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+                masterToggle.classList.remove('text-red-500', 'border-red-500');
+            } else if (audioCtx.state === 'running') {
+                audioCtx.suspend();
+                masterToggle.classList.add('text-red-500', 'border-red-500');
+            }
+        });
+
+        // --- Breathing Guide Logic ---
+        btnBreathe.addEventListener('click', () => {
+            glowBg.classList.toggle('breathing-mode');
+            breatheGuide.classList.toggle('hidden');
+            
+            if (glowBg.classList.contains('breathing-mode')) {
+                btnBreathe.classList.add('text-sky-400', 'border-sky-400');
+                startBreathingText();
+            } else {
+                btnBreathe.classList.remove('text-sky-400', 'border-sky-400');
+                stopBreathingText();
+            }
+        });
+
+        function startBreathingText() {
+            stopBreathingText();
+            runBreathCycle();
+            breathingInterval = setInterval(runBreathCycle, 19000);
+        }
+
+        function runBreathCycle() {
+            breathText.innerText = "TARIK NAPAS (4s)";
+            breathText.style.opacity = 1;
+            
+            breathTimeouts.push(setTimeout(() => {
+                breathText.innerText = "TAHAN (7s)";
+            }, 4000));
+
+            breathTimeouts.push(setTimeout(() => {
+                breathText.innerText = "HEMBUSKAN (8s)";
+            }, 11000));
+        }
+
+        function stopBreathingText() {
+            if (breathingInterval) {
+                clearInterval(breathingInterval);
+                breathingInterval = null;
+            }
+            breathTimeouts.forEach(t => clearTimeout(t));
+            breathTimeouts = [];
+            breathText.innerText = "";
+        }
+
+        // --- Sleep Timer Logic ---
+        
+        document.querySelectorAll('.timer-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.timer-btn').forEach(b => b.classList.remove('active', 'bg-sky-400', 'text-slate-900'));
+                e.target.classList.add('active', 'bg-sky-400', 'text-slate-900');
+                
+                const mins = parseInt(e.target.getAttribute('data-time'));
+                if (sleepTimer) clearTimeout(sleepTimer);
+                timerDisplay.innerText = "";
+
+                if (mins > 0) {
+                    const millis = mins * 60 * 1000;
+                    const endTime = new Date().getTime() + millis;
+                    
+                    timerDisplay.innerText = `Fading out at ${new Date(endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                    
+                    sleepTimer = setTimeout(() => {
+                        Object.values(nodes).forEach(node => {
+                            node.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 10);
+                        });
+                        setTimeout(() => {
+                            audioCtx.suspend();
+                            masterToggle.classList.add('text-red-500');
+                        }, 10000);
+                    }, millis);
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
