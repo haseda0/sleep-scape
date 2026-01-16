@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SleepScape - Organic Edition</title>
+    <title>SleepScape - Organic App</title>
     
     <meta name="theme-color" content="#020617">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json"> <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlNsZWVwU2NhcGUiLAogICJzaG9ydF9uYW1lIjogIlNsZWVwIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwMjA2MTciLAogICJ0aGVtZV9jb2xvciI6ICIjMDIwNjE3IiwKICAiaWNvbnMiOiBbXQp9">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/9372/9372200.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
@@ -26,74 +26,30 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* 1. VISUAL HACK: PARALLAX STARS */
+        /* Elements & Hacks */
         .stars {
-            position: fixed;
-            top: -50%; left: -50%; width: 200%; height: 200%;
-            background-image: 
-                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
-                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px);
-            background-size: 550px 550px, 350px 350px;
-            z-index: -1;
-            opacity: 0.3;
+            position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+            background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px), radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px);
+            background-size: 550px 550px, 350px 350px; z-index: -1; opacity: 0.3;
             transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
-
-        /* 2. VISUAL HACK: PHOTIC DRIVING (2Hz Delta Pulse) */
-        @keyframes subtlePulse {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 0.1; }
-        }
-        #photicLayer {
-            position: fixed; inset: 0; background: #fff;
-            pointer-events: none; z-index: 0;
-            animation: subtlePulse 4s infinite ease-in-out;
-            display: none;
-        }
-
-        /* 3. UTILITY: GHOST MODE (OLED BLACK) */
+        @keyframes subtlePulse { 0%, 100% { opacity: 0; } 50% { opacity: 0.1; } }
+        #photicLayer { position: fixed; inset: 0; background: #fff; pointer-events: none; z-index: 0; animation: subtlePulse 4s infinite ease-in-out; display: none; }
+        
         body.ghost-active * { opacity: 0 !important; pointer-events: none !important; }
         body.ghost-active { background-color: #000000 !important; cursor: none; }
-        #ghostHint {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #333; font-size: 10px; z-index: 9999; pointer-events: none;
-            opacity: 0; transition: opacity 1s;
-        }
+        #ghostHint { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #333; font-size: 10px; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 1s; }
         body.ghost-active #ghostHint { opacity: 1 !important; }
 
-        /* UI Components */
-        .sound-card {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(8px);
-            border-radius: 16px;
-            transition: all 0.3s ease;
-        }
-        .active-card {
-            border-color: rgba(56, 189, 248, 0.5);
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
-        }
-        .void-card {
-            border-color: rgba(139, 92, 246, 0.3);
-            background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(46, 16, 101, 0.4));
-        }
-        .void-card.active-card {
-            border-color: #8b5cf6;
-            box-shadow: 0 0 30px rgba(139, 92, 246, 0.2);
-        }
-
-        /* Custom Slider */
+        .sound-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(8px); border-radius: 16px; transition: all 0.3s ease; }
+        .active-card { border-color: rgba(56, 189, 248, 0.5); box-shadow: 0 0 15px rgba(56, 189, 248, 0.1); }
+        .void-card { border-color: rgba(139, 92, 246, 0.3); background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(46, 16, 101, 0.4)); }
+        .void-card.active-card { border-color: #8b5cf6; box-shadow: 0 0 30px rgba(139, 92, 246, 0.2); }
+        
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 16px; width: 16px;
-            border-radius: 50%; background: #e2e8f0; cursor: pointer;
-            margin-top: -6px; box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px; cursor: pointer; background: #334155; border-radius: 2px;
-        }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #e2e8f0; cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #334155; border-radius: 2px; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="h-screen flex flex-col items-center justify-center relative">
@@ -102,18 +58,20 @@
     <div id="photicLayer"></div>
     <div id="ghostHint">Double tap to wake</div>
 
+    <button id="btnInstall" class="hidden absolute top-4 left-4 z-50 bg-indigo-600 text-white px-3 py-1 rounded-full text-[10px] shadow-lg animate-bounce">
+        <i class="fa-solid fa-download"></i> Install App
+    </button>
+
     <header class="absolute top-0 w-full p-6 z-20 flex justify-between items-center bg-gradient-to-b from-[#020617] to-transparent">
-        <div>
-            <h1 class="text-2xl font-light text-slate-100 tracking-widest">SleepScape</h1>
-            <p class="text-[10px] text-sky-500 font-mono tracking-widest">ORGANIC v3.0</p>
+        <div class="ml-auto flex gap-4">
+             <div>
+                <h1 class="text-2xl font-light text-slate-100 tracking-widest text-right">SleepScape</h1>
+                <p class="text-[10px] text-sky-500 font-mono tracking-widest text-right">PWA ENABLED</p>
+            </div>
         </div>
-        <button onclick="window.location.reload()" class="text-slate-600 text-xs">
-            <i class="fa-solid fa-rotate-right"></i>
-        </button>
     </header>
 
-    <main class="z-10 w-full max-w-md px-6 h-full pt-20 pb-32 overflow-y-auto no-scrollbar relative">
-        
+    <main class="z-10 w-full max-w-md px-6 h-full pt-24 pb-32 overflow-y-auto no-scrollbar relative">
         <div class="flex gap-3 mb-6 overflow-x-auto no-scrollbar py-1">
             <button class="bg-indigo-600/20 border border-indigo-500/50 text-indigo-200 px-4 py-2 rounded-full text-xs whitespace-nowrap hover:bg-indigo-600/40 transition flex items-center gap-2" onclick="activateNeuroDrop()">
                 <i class="fa-solid fa-rocket"></i> <b>Neuro-Drop</b> (10m)
@@ -124,70 +82,25 @@
         </div>
 
         <div class="grid grid-cols-1 gap-4">
-            
             <div class="sound-card void-card p-4 flex items-center gap-4">
-                <div class="w-10 h-10 rounded-full bg-purple-900/50 flex items-center justify-center text-purple-300">
-                    <i class="fa-solid fa-infinity fa-spin" style="animation-duration: 8s;"></i>
-                </div>
-                <div class="flex-grow">
-                    <div class="flex justify-between mb-2">
-                        <span class="text-sm font-bold text-purple-200">The Void (Hypnosis)</span>
-                        <span class="text-xs text-purple-400" id="volVoid">0%</span>
-                    </div>
-                    <input type="range" class="volume-control" data-type="void" min="0" max="100" value="0">
-                </div>
+                <div class="w-10 h-10 rounded-full bg-purple-900/50 flex items-center justify-center text-purple-300"><i class="fa-solid fa-infinity fa-spin" style="animation-duration: 8s;"></i></div>
+                <div class="flex-grow"><div class="flex justify-between mb-2"><span class="text-sm font-bold text-purple-200">The Void</span><span class="text-xs text-purple-400" id="volVoid">0%</span></div><input type="range" class="volume-control" data-type="void" min="0" max="100" value="0"></div>
             </div>
-
             <div class="sound-card p-4 flex items-center gap-4 border-cyan-500/20">
-                <div class="w-10 h-10 rounded-full bg-cyan-900/30 flex items-center justify-center text-cyan-400">
-                    <i class="fa-solid fa-circle-notch fa-spin"></i>
-                </div>
-                <div class="flex-grow">
-                    <div class="flex justify-between mb-2">
-                        <span class="text-sm font-medium text-cyan-200">Orbit (8D Audio)</span>
-                        <span class="text-xs text-slate-500" id="volOrbit">0%</span>
-                    </div>
-                    <input type="range" class="volume-control" data-type="orbit" min="0" max="100" value="0">
-                </div>
+                <div class="w-10 h-10 rounded-full bg-cyan-900/30 flex items-center justify-center text-cyan-400"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+                <div class="flex-grow"><div class="flex justify-between mb-2"><span class="text-sm font-medium text-cyan-200">Orbit (8D)</span><span class="text-xs text-slate-500" id="volOrbit">0%</span></div><input type="range" class="volume-control" data-type="orbit" min="0" max="100" value="0"></div>
             </div>
-
             <div class="sound-card p-4 flex items-center gap-4 border-blue-500/10">
-                <div class="w-10 h-10 rounded-full bg-blue-900/30 flex items-center justify-center text-blue-400">
-                    <i class="fa-solid fa-cloud-showers-heavy"></i>
-                </div>
-                <div class="flex-grow">
-                    <div class="flex justify-between mb-2">
-                        <span class="text-sm font-medium text-slate-300">Organic Rain</span>
-                        <span class="text-xs text-slate-500" id="volRain">0%</span>
-                    </div>
-                    <input type="range" class="volume-control" data-type="rain" min="0" max="100" value="0">
-                </div>
+                <div class="w-10 h-10 rounded-full bg-blue-900/30 flex items-center justify-center text-blue-400"><i class="fa-solid fa-cloud-showers-heavy"></i></div>
+                <div class="flex-grow"><div class="flex justify-between mb-2"><span class="text-sm font-medium text-slate-300">Organic Rain</span><span class="text-xs text-slate-500" id="volRain">0%</span></div><input type="range" class="volume-control" data-type="rain" min="0" max="100" value="0"></div>
             </div>
-
             <div class="sound-card p-4 flex items-center gap-4 border-rose-500/20">
-                <div class="w-10 h-10 rounded-full bg-rose-900/30 flex items-center justify-center text-rose-400">
-                    <i class="fa-solid fa-bed"></i>
-                </div>
-                <div class="flex-grow">
-                    <div class="flex justify-between mb-2">
-                        <span class="text-sm font-medium text-rose-200">Delta (Deep Sleep)</span>
-                        <span class="text-xs text-slate-500" id="volDelta">0%</span>
-                    </div>
-                    <input type="range" class="volume-control" data-type="delta" min="0" max="100" value="0">
-                </div>
+                <div class="w-10 h-10 rounded-full bg-rose-900/30 flex items-center justify-center text-rose-400"><i class="fa-solid fa-bed"></i></div>
+                <div class="flex-grow"><div class="flex justify-between mb-2"><span class="text-sm font-medium text-rose-200">Delta Waves</span><span class="text-xs text-slate-500" id="volDelta">0%</span></div><input type="range" class="volume-control" data-type="delta" min="0" max="100" value="0"></div>
             </div>
-
-             <div class="sound-card p-4 flex items-center gap-4 border-amber-500/20">
-                <div class="w-10 h-10 rounded-full bg-amber-900/30 flex items-center justify-center text-amber-500">
-                    <i class="fa-solid fa-mountain"></i>
-                </div>
-                <div class="flex-grow">
-                    <div class="flex justify-between mb-2">
-                        <span class="text-sm font-medium text-amber-200">Deep Brown (Blocker)</span>
-                        <span class="text-xs text-slate-500" id="volBrown">0%</span>
-                    </div>
-                    <input type="range" class="volume-control" data-type="brown" min="0" max="100" value="0">
-                </div>
+            <div class="sound-card p-4 flex items-center gap-4 border-amber-500/20">
+                <div class="w-10 h-10 rounded-full bg-amber-900/30 flex items-center justify-center text-amber-500"><i class="fa-solid fa-mountain"></i></div>
+                <div class="flex-grow"><div class="flex justify-between mb-2"><span class="text-sm font-medium text-amber-200">Brown Noise</span><span class="text-xs text-slate-500" id="volBrown">0%</span></div><input type="range" class="volume-control" data-type="brown" min="0" max="100" value="0"></div>
             </div>
         </div>
     </main>
@@ -197,224 +110,126 @@
             <i class="fa-solid fa-moon text-4xl text-indigo-200"></i>
         </div>
         <h2 class="text-4xl text-white font-light mb-2 tracking-tighter">SleepScape</h2>
-        <p class="text-slate-400 mb-12 text-center text-sm font-light">
-            Organic Audio Engine<br>
-            <span class="text-xs opacity-50 font-mono">Headphones Recommended</span>
-        </p>
-        <button id="btnInit" class="px-12 py-4 rounded-full bg-indigo-600 text-white font-bold tracking-widest hover:bg-indigo-500 transition shadow-lg hover:shadow-indigo-500/50 transform active:scale-95">
-            ENTER SLEEP MODE
-        </button>
-        <p class="absolute bottom-10 text-[10px] text-slate-700">v3.0 • Double Tap for Ghost Mode</p>
+        <p class="text-slate-400 mb-12 text-center text-sm font-light">Organic Audio Engine<br><span class="text-xs opacity-50 font-mono">Headphones Recommended</span></p>
+        <button id="btnInit" class="px-12 py-4 rounded-full bg-indigo-600 text-white font-bold tracking-widest hover:bg-indigo-500 transition shadow-lg hover:shadow-indigo-500/50 transform active:scale-95">ENTER SLEEP MODE</button>
+        <p class="absolute bottom-10 text-[10px] text-slate-700">v3.1 (PWA) • Double Tap for Ghost Mode</p>
     </div>
 
     <script>
-        // --- 1. CORE SYSTEM ---
-        let audioCtx;
-        const nodes = {};
-        
-        // --- 2. SENSORS & GHOST MODE ---
+        // --- PWA INSTALLATION LOGIC ---
+        let deferredPrompt;
+        const btnInstall = document.getElementById('btnInstall');
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(err => console.log('SW Fail', err));
+            });
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            btnInstall.classList.remove('hidden'); // Show install button
+        });
+
+        btnInstall.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response: ${outcome}`);
+            deferredPrompt = null;
+            btnInstall.classList.add('hidden');
+        });
+
+        // --- AUDIO ENGINE (Original Logic) ---
+        let audioCtx; const nodes = {};
         const stars = document.querySelector('.stars');
         
-        // Gyro Parallax
-        window.addEventListener('deviceorientation', (e) => {
-            const x = e.gamma * 1.5; const y = e.beta * 1.5;
-            stars.style.transform = `translate(${x}px, ${y}px)`;
-        });
-        // Mouse Parallax (Backup)
-        document.addEventListener('mousemove', (e) => {
-            const x = (window.innerWidth - e.pageX * 2) / 100;
-            const y = (window.innerHeight - e.pageY * 2) / 100;
-            stars.style.transform = `translate(${x}px, ${y}px)`;
-        });
+        window.addEventListener('deviceorientation', (e) => { stars.style.transform = `translate(${e.gamma*1.5}px, ${e.beta*1.5}px)`; });
+        document.addEventListener('mousemove', (e) => { stars.style.transform = `translate(${(window.innerWidth-e.pageX*2)/100}px, ${(window.innerHeight-e.pageY*2)/100}px)`; });
 
-        // Double Tap Ghost Mode
         let lastTap = 0;
-        document.body.addEventListener('touchend', handleDoubleTap);
+        document.body.addEventListener('touchend', (e) => { if(new Date().getTime()-lastTap < 500) { toggleGhostMode(); e.preventDefault(); } lastTap=new Date().getTime(); });
         document.body.addEventListener('dblclick', toggleGhostMode);
+        function toggleGhostMode() { document.body.classList.toggle('ghost-active'); }
 
-        function handleDoubleTap(e) {
-            const curTime = new Date().getTime();
-            if (curTime - lastTap < 500 && curTime - lastTap > 0) {
-                toggleGhostMode();
-                e.preventDefault();
-            }
-            lastTap = curTime;
-        }
-
-        function toggleGhostMode() {
-            document.body.classList.toggle('ghost-active');
-        }
-
-        // --- 3. ORGANIC AUDIO ENGINE ---
         function createNoiseBuffer() {
             if (!audioCtx) return;
-            const size = audioCtx.sampleRate * 2;
-            const buffer = audioCtx.createBuffer(1, size, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < size; i++) data[i] = Math.random() * 2 - 1;
-            return buffer;
+            const size = audioCtx.sampleRate*2; const buffer=audioCtx.createBuffer(1,size,audioCtx.sampleRate);
+            const data=buffer.getChannelData(0); for(let i=0;i<size;i++) data[i]=Math.random()*2-1; return buffer;
         }
-
-        // The Void (Shepard Tone)
-        function createVoidSource(gainNode) {
-            const oscs = []; const gains = [];
-            const speed = 0.08; const baseFreq = 70;
-            for(let i=0; i<6; i++) {
-                const osc = audioCtx.createOscillator(); osc.type = 'sine';
-                const pan = audioCtx.createStereoPanner(); pan.pan.value = (Math.random()*2)-1;
-                const g = audioCtx.createGain(); g.gain.value = 0;
-                osc.connect(pan); pan.connect(g); g.connect(gainNode);
-                osc.start(); oscs.push(osc); gains.push(g);
+        function createVoidSource(gn) {
+            const oscs=[], gains=[]; const speed=0.08, baseFreq=70;
+            for(let i=0;i<6;i++) {
+                const o=audioCtx.createOscillator(); o.type='sine';
+                const p=audioCtx.createStereoPanner(); p.pan.value=(Math.random()*2)-1;
+                const g=audioCtx.createGain(); g.gain.value=0;
+                o.connect(p); p.connect(g); g.connect(gn); o.start(); oscs.push(o); gains.push(g);
             }
-            const startTime = audioCtx.currentTime;
-            function update() {
-                const time = audioCtx.currentTime - startTime;
-                for(let i=0; i<6; i++) {
-                    let phase = (time * speed + (i/6)) % 1;
-                    let freq = baseFreq * Math.pow(2, (1-phase) * 4);
-                    oscs[i].frequency.setValueAtTime(freq, audioCtx.currentTime);
-                    let vol = Math.sin(Math.PI * phase); vol = Math.pow(vol, 3);
-                    gains[i].gain.setTargetAtTime(vol * 0.25, audioCtx.currentTime, 0.05);
+            const st=audioCtx.currentTime;
+            (function up(){
+                const t=audioCtx.currentTime-st;
+                for(let i=0;i<6;i++){
+                    let ph=(t*speed+(i/6))%1;
+                    let freq=baseFreq*Math.pow(2,(1-ph)*4);
+                    oscs[i].frequency.setValueAtTime(freq,audioCtx.currentTime);
+                    let vol=Math.pow(Math.sin(Math.PI*ph),3);
+                    gains[i].gain.setTargetAtTime(vol*0.25,audioCtx.currentTime,0.05);
                 }
-                requestAnimationFrame(update);
-            }
-            update();
+                requestAnimationFrame(up);
+            })();
         }
-
-        // Orbit (8D)
-        function createOrbitSource(gainNode) {
-            const osc1 = audioCtx.createOscillator(); osc1.frequency.value = 180;
-            const osc2 = audioCtx.createOscillator(); osc2.frequency.value = 182; 
-            const mix = audioCtx.createGain(); mix.gain.value = 0.3;
-            osc1.connect(mix); osc2.connect(mix);
-            const panner = audioCtx.createStereoPanner();
-            const panLfo = audioCtx.createOscillator(); panLfo.frequency.value = 0.1;
-            panLfo.connect(panner.pan);
-            mix.connect(panner); panner.connect(gainNode);
-            osc1.start(); osc2.start(); panLfo.start();
+        function createOrbitSource(gn) {
+            const o1=audioCtx.createOscillator(); o1.frequency.value=180;
+            const o2=audioCtx.createOscillator(); o2.frequency.value=182;
+            const m=audioCtx.createGain(); m.gain.value=0.3; o1.connect(m); o2.connect(m);
+            const p=audioCtx.createStereoPanner();
+            const l=audioCtx.createOscillator(); l.frequency.value=0.1; l.connect(p.pan);
+            m.connect(p); p.connect(gn); o1.start(); o2.start(); l.start();
         }
-
-        // UPGRADED: Organic Generator (Breathing Noise)
-        function createOrganicSource(type, gainNode) {
-            if (type === 'rain' || type === 'brown') {
-                const buffer = createNoiseBuffer();
-                const noise = audioCtx.createBufferSource(); noise.buffer = buffer; noise.loop = true;
-                
-                // Filter Utama
-                const filter = audioCtx.createBiquadFilter(); 
-                filter.type = 'lowpass';
-                filter.frequency.value = type === 'brown' ? 350 : 700;
-
-                // LFO Filter (Efek Bernapas)
-                const lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.1; 
-                const lfoGain = audioCtx.createGain(); lfoGain.gain.value = type === 'brown' ? 150 : 250;
-                lfo.connect(lfoGain); lfoGain.connect(filter.frequency); lfo.start();
-
-                // Stereo Widening (Bergerak halus kiri-kanan)
-                const panner = audioCtx.createStereoPanner();
-                const panLfo = audioCtx.createOscillator(); panLfo.frequency.value = 0.05; 
-                const panAmp = audioCtx.createGain(); panAmp.gain.value = 0.2; 
-                panLfo.connect(panAmp); panAmp.connect(panner.pan); panLfo.start();
-
-                noise.connect(filter); filter.connect(panner); panner.connect(gainNode); noise.start();
-            } 
-            else if (type === 'delta') {
-                const osc = audioCtx.createOscillator(); osc.frequency.value = 100;
-                const osc2 = audioCtx.createOscillator(); osc2.frequency.value = 102; 
-                const p1 = audioCtx.createStereoPanner(); p1.pan.value = -1;
-                const p2 = audioCtx.createStereoPanner(); p2.pan.value = 1;
-                osc.connect(p1); p1.connect(gainNode); osc2.connect(p2); p2.connect(gainNode);
-                osc.start(); osc2.start();
+        function createOrganicSource(t, gn) {
+            if(t==='rain'||t==='brown') {
+                const b=createNoiseBuffer(); const n=audioCtx.createBufferSource(); n.buffer=b; n.loop=true;
+                const f=audioCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=t==='brown'?350:700;
+                const l=audioCtx.createOscillator(); l.frequency.value=0.1; 
+                const lg=audioCtx.createGain(); lg.gain.value=t==='brown'?150:250; l.connect(lg); lg.connect(f.frequency); l.start();
+                const p=audioCtx.createStereoPanner(); 
+                const pl=audioCtx.createOscillator(); pl.frequency.value=0.05; 
+                const pg=audioCtx.createGain(); pg.gain.value=0.2; pl.connect(pg); pg.connect(p.pan); pl.start();
+                n.connect(f); f.connect(p); p.connect(gn); n.start();
+            } else if(t==='delta') {
+                const o1=audioCtx.createOscillator(); o1.frequency.value=100;
+                const o2=audioCtx.createOscillator(); o2.frequency.value=102;
+                const p1=audioCtx.createStereoPanner(); p1.pan.value=-1;
+                const p2=audioCtx.createStereoPanner(); p2.pan.value=1;
+                o1.connect(p1); p1.connect(gn); o2.connect(p2); p2.connect(gn); o1.start(); o2.start();
             }
         }
 
-        // --- 4. CONTROLS ---
         document.getElementById('btnInit').addEventListener('click', async () => {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                ['void','orbit','rain','delta','brown'].forEach(t => {
-                    nodes[t] = audioCtx.createGain();
-                    nodes[t].gain.value = 0;
-                    nodes[t].connect(audioCtx.destination);
-                });
-                createVoidSource(nodes['void']);
-                createOrbitSource(nodes['orbit']);
-                createOrganicSource('rain', nodes['rain']);
-                createOrganicSource('delta', nodes['delta']);
-                createOrganicSource('brown', nodes['brown']);
+                ['void','orbit','rain','delta','brown'].forEach(t=>{ nodes[t]=audioCtx.createGain(); nodes[t].gain.value=0; nodes[t].connect(audioCtx.destination); });
+                createVoidSource(nodes['void']); createOrbitSource(nodes['orbit']);
+                createOrganicSource('rain',nodes['rain']); createOrganicSource('delta',nodes['delta']); createOrganicSource('brown',nodes['brown']);
             }
-
-            // Request Wake Lock
             try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch(e){}
-
-            const overlay = document.getElementById('startOverlay');
-            overlay.style.opacity = 0;
-            setTimeout(()=> overlay.style.display='none', 700);
-            
-            activateNeuroDrop(); // Auto-start sequence
+            const ov=document.getElementById('startOverlay'); ov.style.opacity=0; setTimeout(()=>ov.style.display='none',700);
+            activateNeuroDrop();
         });
 
-        // Neuro-Drop Protocol
         window.activateNeuroDrop = function() {
-            document.getElementById('photicLayer').style.display = 'block';
-            
-            // Reset All
-            ['void','orbit','rain','delta','brown'].forEach(t => {
-                if(nodes[t]) {
-                    nodes[t].gain.cancelScheduledValues(audioCtx.currentTime);
-                    rampVolume(t, 0, 1);
-                }
-            });
-
-            console.log("🚀 Protocol Started");
-            // T=0: Distraksi (Orbit + Rain)
-            rampVolume('orbit', 70, 3);
-            rampVolume('rain', 25, 3);
-
-            // T=2m: Induksi (Void/Hypnosis)
-            setTimeout(() => {
-                rampVolume('orbit', 0, 30);
-                rampVolume('void', 65, 40);
-            }, 120 * 1000);
-
-            // T=5m: Shutdown (Delta + Brown)
-            setTimeout(() => {
-                rampVolume('void', 0, 60);
-                rampVolume('rain', 0, 60);
-                rampVolume('delta', 85, 40);
-                rampVolume('brown', 50, 40);
-                document.getElementById('photicLayer').style.display = 'none'; // Matikan lampu
-            }, 300 * 1000);
+            document.getElementById('photicLayer').style.display='block';
+            ['void','orbit','rain','delta','brown'].forEach(t=>{ if(nodes[t]){ nodes[t].gain.cancelScheduledValues(audioCtx.currentTime); rampVolume(t,0,1);} });
+            rampVolume('orbit',70,3); rampVolume('rain',25,3);
+            setTimeout(()=>{ rampVolume('orbit',0,30); rampVolume('void',65,40); },120000);
+            setTimeout(()=>{ rampVolume('void',0,60); rampVolume('rain',0,60); rampVolume('delta',85,40); rampVolume('brown',50,40); document.getElementById('photicLayer').style.display='none'; },300000);
         }
-
-        window.applyPreset = (p) => {
-            if(p === 'clear') {
-                Object.values(nodes).forEach(n => n.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5));
-                document.querySelectorAll('input[type=range]').forEach(i => i.value = 0);
-            }
-        }
-
-        function rampVolume(type, val, dur) {
-            if(!nodes[type]) return;
-            const now = audioCtx.currentTime;
-            nodes[type].gain.linearRampToValueAtTime(val/100, now + dur);
-            // Sync UI
-            const el = document.querySelector(`input[data-type="${type}"]`);
-            if(el) { 
-                el.value = val; 
-                document.getElementById('vol'+type.charAt(0).toUpperCase()+type.slice(1)).innerText = val+'%'; 
-            }
-        }
-        
-        // Slider Listener
-        document.querySelectorAll('input[type=range]').forEach(i => {
-            i.addEventListener('input', (e) => {
-                const type = e.target.dataset.type;
-                nodes[type].gain.cancelScheduledValues(audioCtx.currentTime);
-                nodes[type].gain.setTargetAtTime(e.target.value/100, audioCtx.currentTime, 0.1);
-                document.getElementById('vol'+type.charAt(0).toUpperCase()+type.slice(1)).innerText = e.target.value+'%';
-            });
-        });
+        window.applyPreset = (p) => { if(p==='clear') { Object.values(nodes).forEach(n=>n.gain.setTargetAtTime(0,audioCtx.currentTime,0.5)); document.querySelectorAll('input[type=range]').forEach(i=>i.value=0); } }
+        function rampVolume(t,v,d) { if(!nodes[t])return; nodes[t].gain.linearRampToValueAtTime(v/100,audioCtx.currentTime+d); const el=document.querySelector(`input[data-type="${t}"]`); if(el){el.value=v;document.getElementById('vol'+t.charAt(0).toUpperCase()+t.slice(1)).innerText=v+'%';} }
+        document.querySelectorAll('input[type=range]').forEach(i=>{ i.addEventListener('input',(e)=>{ const t=e.target.dataset.type; nodes[t].gain.cancelScheduledValues(audioCtx.currentTime); nodes[t].gain.setTargetAtTime(e.target.value/100,audioCtx.currentTime,0.1); document.getElementById('vol'+t.charAt(0).toUpperCase()+t.slice(1)).innerText=e.target.value+'%'; }); });
     </script>
 </body>
 </html>
