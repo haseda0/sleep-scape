@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SleepScape - Organic App</title>
+    <title>SleepScape - Platinum Edition</title>
     
     <meta name="theme-color" content="#020617">
-    <link rel="manifest" href="manifest.json"> <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/9372/9372200.png">
 
@@ -26,52 +27,89 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Elements & Hacks */
+        /* --- VISUAL HACKS --- */
+        /* 1. Ambient Breathing Background */
+        .ambient-glow {
+            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(30, 58, 138, 0.15) 0%, rgba(2, 6, 23, 0) 70%);
+            z-index: -2; pointer-events: none; transition: all 0.5s ease;
+        }
+        .breathing-mode {
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, rgba(2, 6, 23, 0) 60%);
+            animation: breathCycle 19s infinite ease-in-out;
+        }
+        @keyframes breathCycle {
+            0% { transform: scale(0.8); opacity: 0.3; }   /* Inhale (4s) */
+            20% { transform: scale(1.1); opacity: 0.6; }  /* Hold (7s start) */
+            55% { transform: scale(1.1); opacity: 0.6; }  /* Hold (7s end) */
+            100% { transform: scale(0.8); opacity: 0.3; } /* Exhale (8s) */
+        }
+
+        /* 2. Parallax Stars */
         .stars {
             position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
             background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px), radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px);
             background-size: 550px 550px, 350px 350px; z-index: -1; opacity: 0.3;
             transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
+
+        /* 3. Photic Driving (2Hz Strobe) */
         @keyframes subtlePulse { 0%, 100% { opacity: 0; } 50% { opacity: 0.1; } }
         #photicLayer { position: fixed; inset: 0; background: #fff; pointer-events: none; z-index: 0; animation: subtlePulse 4s infinite ease-in-out; display: none; }
         
+        /* 4. Ghost Mode (OLED Black) */
         body.ghost-active * { opacity: 0 !important; pointer-events: none !important; }
         body.ghost-active { background-color: #000000 !important; cursor: none; }
         #ghostHint { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #333; font-size: 10px; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 1s; }
         body.ghost-active #ghostHint { opacity: 1 !important; }
 
+        /* --- UI COMPONENTS --- */
         .sound-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(8px); border-radius: 16px; transition: all 0.3s ease; }
         .active-card { border-color: rgba(56, 189, 248, 0.5); box-shadow: 0 0 15px rgba(56, 189, 248, 0.1); }
         .void-card { border-color: rgba(139, 92, 246, 0.3); background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(46, 16, 101, 0.4)); }
         .void-card.active-card { border-color: #8b5cf6; box-shadow: 0 0 30px rgba(139, 92, 246, 0.2); }
         
+        /* Custom Range Slider */
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #e2e8f0; cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #334155; border-radius: 2px; }
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .timer-btn.active { background-color: #38bdf8; color: #0f172a; border-color: #38bdf8; }
     </style>
 </head>
 <body class="h-screen flex flex-col items-center justify-center relative">
 
     <div class="stars"></div>
     <div id="photicLayer"></div>
+    <div id="glowBg" class="ambient-glow"></div>
     <div id="ghostHint">Double tap to wake</div>
 
     <button id="btnInstall" class="hidden absolute top-4 left-4 z-50 bg-indigo-600 text-white px-3 py-1 rounded-full text-[10px] shadow-lg animate-bounce">
-        <i class="fa-solid fa-download"></i> Install App
+        <i class="fa-solid fa-download"></i> Install
     </button>
 
     <header class="absolute top-0 w-full p-6 z-20 flex justify-between items-center bg-gradient-to-b from-[#020617] to-transparent">
-        <div class="ml-auto flex gap-4">
-             <div>
-                <h1 class="text-2xl font-light text-slate-100 tracking-widest text-right">SleepScape</h1>
-                <p class="text-[10px] text-sky-500 font-mono tracking-widest text-right">PWA ENABLED</p>
-            </div>
+        <div>
+            <h1 class="text-2xl font-light text-slate-100 tracking-widest">SleepScape</h1>
+            <p class="text-[10px] text-sky-500 font-mono tracking-widest">PLATINUM v5.0</p>
+        </div>
+        <div class="flex gap-3">
+            <button id="btnBreathe" class="w-10 h-10 rounded-full border border-slate-700 text-slate-400 hover:text-sky-400 transition flex items-center justify-center">
+                <i class="fa-solid fa-lungs"></i>
+            </button>
+            <button onclick="window.location.reload()" class="w-10 h-10 rounded-full border border-slate-700 text-slate-400 hover:text-white transition flex items-center justify-center">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
         </div>
     </header>
 
+    <div id="breatheGuide" class="hidden absolute top-20 left-0 w-full flex items-center justify-center pointer-events-none z-30 transition-opacity duration-500">
+        <p id="breathText" class="text-xl font-light text-sky-200 tracking-[0.2em] uppercase opacity-80 animate-pulse"></p>
+    </div>
+
     <main class="z-10 w-full max-w-md px-6 h-full pt-24 pb-32 overflow-y-auto no-scrollbar relative">
+        
         <div class="flex gap-3 mb-6 overflow-x-auto no-scrollbar py-1">
             <button class="bg-indigo-600/20 border border-indigo-500/50 text-indigo-200 px-4 py-2 rounded-full text-xs whitespace-nowrap hover:bg-indigo-600/40 transition flex items-center gap-2" onclick="activateNeuroDrop()">
                 <i class="fa-solid fa-rocket"></i> <b>Neuro-Drop</b> (10m)
@@ -82,22 +120,47 @@
         </div>
 
         <div class="grid grid-cols-1 gap-4">
+            
             <div class="sound-card void-card p-4 flex items-center gap-4">
                 <div class="w-10 h-10 rounded-full bg-purple-900/50 flex items-center justify-center text-purple-300"><i class="fa-solid fa-infinity fa-spin" style="animation-duration: 8s;"></i></div>
                 <div class="flex-grow"><div class="flex justify-between mb-2"><span class="text-sm font-bold text-purple-200">The Void</span><span class="text-xs text-purple-400" id="volVoid">0%</span></div><input type="range" class="volume-control" data-type="void" min="0" max="100" value="0"></div>
             </div>
+
             <div class="sound-card p-4 flex items-center gap-4 border-cyan-500/20">
                 <div class="w-10 h-10 rounded-full bg-cyan-900/30 flex items-center justify-center text-cyan-400"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
                 <div class="flex-grow"><div class="flex justify-between mb-2"><span class="text-sm font-medium text-cyan-200">Orbit (8D)</span><span class="text-xs text-slate-500" id="volOrbit">0%</span></div><input type="range" class="volume-control" data-type="orbit" min="0" max="100" value="0"></div>
             </div>
+
             <div class="sound-card p-4 flex items-center gap-4 border-blue-500/10">
                 <div class="w-10 h-10 rounded-full bg-blue-900/30 flex items-center justify-center text-blue-400"><i class="fa-solid fa-cloud-showers-heavy"></i></div>
                 <div class="flex-grow"><div class="flex justify-between mb-2"><span class="text-sm font-medium text-slate-300">Organic Rain</span><span class="text-xs text-slate-500" id="volRain">0%</span></div><input type="range" class="volume-control" data-type="rain" min="0" max="100" value="0"></div>
             </div>
+
+            <div class="sound-card p-4 flex items-center gap-4 border-teal-500/10">
+                <div class="w-10 h-10 rounded-full bg-teal-900/30 flex items-center justify-center text-teal-400"><i class="fa-solid fa-wind"></i></div>
+                <div class="flex-grow"><div class="flex justify-between mb-2"><span class="text-sm font-medium text-teal-200">Night Wind</span><span class="text-xs text-slate-500" id="volWind">0%</span></div><input type="range" class="volume-control" data-type="wind" min="0" max="100" value="0"></div>
+            </div>
+
+            <div class="sound-card p-4 flex items-center gap-4 border-orange-500/10">
+                <div class="w-10 h-10 rounded-full bg-orange-900/30 flex items-center justify-center text-orange-400"><i class="fa-solid fa-fire"></i></div>
+                <div class="flex-grow"><div class="flex justify-between mb-2"><span class="text-sm font-medium text-orange-200">Campfire</span><span class="text-xs text-slate-500" id="volFire">0%</span></div><input type="range" class="volume-control" data-type="fire" min="0" max="100" value="0"></div>
+            </div>
+
+            <div class="sound-card p-4 flex items-center gap-4 border-indigo-500/10">
+                <div class="w-10 h-10 rounded-full bg-indigo-900/30 flex items-center justify-center text-indigo-400"><i class="fa-solid fa-om"></i></div>
+                <div class="flex-grow"><div class="flex justify-between mb-2"><span class="text-sm font-medium text-indigo-200">Cosmic Drone</span><span class="text-xs text-slate-500" id="volDrone">0%</span></div><input type="range" class="volume-control" data-type="drone" min="0" max="100" value="0"></div>
+            </div>
+
+            <div class="sound-card p-4 flex items-center gap-4 border-emerald-500/10">
+                <div class="w-10 h-10 rounded-full bg-emerald-900/30 flex items-center justify-center text-emerald-400"><i class="fa-solid fa-spa"></i></div>
+                <div class="flex-grow"><div class="flex justify-between mb-2"><span class="text-sm font-medium text-emerald-200">Nirvana (528Hz)</span><span class="text-xs text-slate-500" id="volNirvana">0%</span></div><input type="range" class="volume-control" data-type="nirvana" min="0" max="100" value="0"></div>
+            </div>
+
             <div class="sound-card p-4 flex items-center gap-4 border-rose-500/20">
                 <div class="w-10 h-10 rounded-full bg-rose-900/30 flex items-center justify-center text-rose-400"><i class="fa-solid fa-bed"></i></div>
                 <div class="flex-grow"><div class="flex justify-between mb-2"><span class="text-sm font-medium text-rose-200">Delta Waves</span><span class="text-xs text-slate-500" id="volDelta">0%</span></div><input type="range" class="volume-control" data-type="delta" min="0" max="100" value="0"></div>
             </div>
+
             <div class="sound-card p-4 flex items-center gap-4 border-amber-500/20">
                 <div class="w-10 h-10 rounded-full bg-amber-900/30 flex items-center justify-center text-amber-500"><i class="fa-solid fa-mountain"></i></div>
                 <div class="flex-grow"><div class="flex justify-between mb-2"><span class="text-sm font-medium text-amber-200">Brown Noise</span><span class="text-xs text-slate-500" id="volBrown">0%</span></div><input type="range" class="volume-control" data-type="brown" min="0" max="100" value="0"></div>
@@ -105,130 +168,206 @@
         </div>
     </main>
 
+    <footer class="absolute bottom-0 w-full p-4 z-20 bg-gradient-to-t from-[#020617] via-[#020617] to-transparent">
+        <div class="max-w-md mx-auto text-center">
+            <div class="flex justify-center gap-3">
+                <button class="timer-btn px-4 py-2 rounded-full border border-slate-800 text-xs text-slate-400 hover:border-slate-500 transition" data-time="15">15m</button>
+                <button class="timer-btn px-4 py-2 rounded-full border border-slate-800 text-xs text-slate-400 hover:border-slate-500 transition" data-time="30">30m</button>
+                <button class="timer-btn px-4 py-2 rounded-full border border-slate-800 text-xs text-slate-400 hover:border-slate-500 transition" data-time="60">60m</button>
+                <button class="timer-btn px-4 py-2 rounded-full border border-slate-800 text-xs text-slate-400 hover:border-slate-500 transition active" data-time="0">∞</button>
+            </div>
+            <p id="timerDisplay" class="text-[10px] text-slate-600 mt-2 h-4"></p>
+        </div>
+    </footer>
+
     <div id="startOverlay" class="fixed inset-0 bg-[#020617] z-50 flex flex-col items-center justify-center px-4 transition-opacity duration-700">
         <div class="w-24 h-24 rounded-full bg-gradient-to-b from-indigo-900 to-slate-900 flex items-center justify-center shadow-[0_0_60px_rgba(79,70,229,0.4)] mb-8 animate-pulse">
             <i class="fa-solid fa-moon text-4xl text-indigo-200"></i>
         </div>
         <h2 class="text-4xl text-white font-light mb-2 tracking-tighter">SleepScape</h2>
-        <p class="text-slate-400 mb-12 text-center text-sm font-light">Organic Audio Engine<br><span class="text-xs opacity-50 font-mono">Headphones Recommended</span></p>
+        <p class="text-slate-400 mb-12 text-center text-sm font-light">Platinum Edition<br><span class="text-xs opacity-50 font-mono">Headphones Recommended</span></p>
         <button id="btnInit" class="px-12 py-4 rounded-full bg-indigo-600 text-white font-bold tracking-widest hover:bg-indigo-500 transition shadow-lg hover:shadow-indigo-500/50 transform active:scale-95">ENTER SLEEP MODE</button>
-        <p class="absolute bottom-10 text-[10px] text-slate-700">v3.1 (PWA) • Double Tap for Ghost Mode</p>
     </div>
 
     <script>
-        // --- PWA INSTALLATION LOGIC ---
-        let deferredPrompt;
-        const btnInstall = document.getElementById('btnInstall');
+        // --- 1. PWA INSTALLATION ---
+        let deferredPrompt; const btnInstall = document.getElementById('btnInstall');
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js')); }
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; btnInstall.classList.remove('hidden'); });
+        btnInstall.addEventListener('click', async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); deferredPrompt = null; btnInstall.classList.add('hidden'); });
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('SW Registered'))
-                    .catch(err => console.log('SW Fail', err));
-            });
-        }
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            btnInstall.classList.remove('hidden'); // Show install button
-        });
-
-        btnInstall.addEventListener('click', async () => {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response: ${outcome}`);
-            deferredPrompt = null;
-            btnInstall.classList.add('hidden');
-        });
-
-        // --- AUDIO ENGINE (Original Logic) ---
+        // --- 2. CORE VARIABLES ---
         let audioCtx; const nodes = {};
         const stars = document.querySelector('.stars');
-        
+        let sleepTimer = null; let breathingInterval = null;
+        const allSounds = ['void','orbit','rain','wind','fire','drone','nirvana','delta','brown'];
+
+        // --- 3. SENSORS & GHOST MODE ---
         window.addEventListener('deviceorientation', (e) => { stars.style.transform = `translate(${e.gamma*1.5}px, ${e.beta*1.5}px)`; });
         document.addEventListener('mousemove', (e) => { stars.style.transform = `translate(${(window.innerWidth-e.pageX*2)/100}px, ${(window.innerHeight-e.pageY*2)/100}px)`; });
-
         let lastTap = 0;
         document.body.addEventListener('touchend', (e) => { if(new Date().getTime()-lastTap < 500) { toggleGhostMode(); e.preventDefault(); } lastTap=new Date().getTime(); });
         document.body.addEventListener('dblclick', toggleGhostMode);
         function toggleGhostMode() { document.body.classList.toggle('ghost-active'); }
 
+        // --- 4. AUDIO GENERATORS ---
         function createNoiseBuffer() {
-            if (!audioCtx) return;
-            const size = audioCtx.sampleRate*2; const buffer=audioCtx.createBuffer(1,size,audioCtx.sampleRate);
-            const data=buffer.getChannelData(0); for(let i=0;i<size;i++) data[i]=Math.random()*2-1; return buffer;
+            if (!audioCtx) return; const s=audioCtx.sampleRate*2; const b=audioCtx.createBuffer(1,s,audioCtx.sampleRate);
+            const d=b.getChannelData(0); for(let i=0;i<s;i++) d[i]=Math.random()*2-1; return b;
         }
+
+        // Void (Shepard)
         function createVoidSource(gn) {
             const oscs=[], gains=[]; const speed=0.08, baseFreq=70;
             for(let i=0;i<6;i++) {
-                const o=audioCtx.createOscillator(); o.type='sine';
-                const p=audioCtx.createStereoPanner(); p.pan.value=(Math.random()*2)-1;
-                const g=audioCtx.createGain(); g.gain.value=0;
-                o.connect(p); p.connect(g); g.connect(gn); o.start(); oscs.push(o); gains.push(g);
+                const o=audioCtx.createOscillator(); o.type='sine'; const p=audioCtx.createStereoPanner(); p.pan.value=(Math.random()*2)-1;
+                const g=audioCtx.createGain(); g.gain.value=0; o.connect(p); p.connect(g); g.connect(gn); o.start(); oscs.push(o); gains.push(g);
             }
             const st=audioCtx.currentTime;
             (function up(){
                 const t=audioCtx.currentTime-st;
                 for(let i=0;i<6;i++){
-                    let ph=(t*speed+(i/6))%1;
-                    let freq=baseFreq*Math.pow(2,(1-ph)*4);
-                    oscs[i].frequency.setValueAtTime(freq,audioCtx.currentTime);
-                    let vol=Math.pow(Math.sin(Math.PI*ph),3);
-                    gains[i].gain.setTargetAtTime(vol*0.25,audioCtx.currentTime,0.05);
+                    let ph=(t*speed+(i/6))%1; let freq=baseFreq*Math.pow(2,(1-ph)*4); oscs[i].frequency.setValueAtTime(freq,audioCtx.currentTime);
+                    let vol=Math.pow(Math.sin(Math.PI*ph),3); gains[i].gain.setTargetAtTime(vol*0.25,audioCtx.currentTime,0.05);
                 }
                 requestAnimationFrame(up);
             })();
         }
+
+        // Orbit (8D)
         function createOrbitSource(gn) {
-            const o1=audioCtx.createOscillator(); o1.frequency.value=180;
-            const o2=audioCtx.createOscillator(); o2.frequency.value=182;
+            const o1=audioCtx.createOscillator(); o1.frequency.value=180; const o2=audioCtx.createOscillator(); o2.frequency.value=182;
             const m=audioCtx.createGain(); m.gain.value=0.3; o1.connect(m); o2.connect(m);
-            const p=audioCtx.createStereoPanner();
-            const l=audioCtx.createOscillator(); l.frequency.value=0.1; l.connect(p.pan);
+            const p=audioCtx.createStereoPanner(); const l=audioCtx.createOscillator(); l.frequency.value=0.1; l.connect(p.pan);
             m.connect(p); p.connect(gn); o1.start(); o2.start(); l.start();
         }
-        function createOrganicSource(t, gn) {
-            if(t==='rain'||t==='brown') {
+
+        // Organic Sources
+        function createOrganicSource(type, gn) {
+            if (['rain', 'wind', 'brown'].includes(type)) {
                 const b=createNoiseBuffer(); const n=audioCtx.createBufferSource(); n.buffer=b; n.loop=true;
-                const f=audioCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=t==='brown'?350:700;
+                const f=audioCtx.createBiquadFilter(); 
+                if(type==='rain') { f.type='lowpass'; f.frequency.value=700; }
+                if(type==='brown') { f.type='lowpass'; f.frequency.value=350; }
+                if(type==='wind') { f.type='bandpass'; f.frequency.value=400; f.Q.value=0.5; }
                 const l=audioCtx.createOscillator(); l.frequency.value=0.1; 
-                const lg=audioCtx.createGain(); lg.gain.value=t==='brown'?150:250; l.connect(lg); lg.connect(f.frequency); l.start();
-                const p=audioCtx.createStereoPanner(); 
-                const pl=audioCtx.createOscillator(); pl.frequency.value=0.05; 
+                const lg=audioCtx.createGain(); lg.gain.value=200; l.connect(lg); lg.connect(f.frequency); l.start();
+                const p=audioCtx.createStereoPanner(); const pl=audioCtx.createOscillator(); pl.frequency.value=0.05; 
                 const pg=audioCtx.createGain(); pg.gain.value=0.2; pl.connect(pg); pg.connect(p.pan); pl.start();
                 n.connect(f); f.connect(p); p.connect(gn); n.start();
-            } else if(t==='delta') {
-                const o1=audioCtx.createOscillator(); o1.frequency.value=100;
-                const o2=audioCtx.createOscillator(); o2.frequency.value=102;
-                const p1=audioCtx.createStereoPanner(); p1.pan.value=-1;
-                const p2=audioCtx.createStereoPanner(); p2.pan.value=1;
+
+            } else if (type === 'fire') {
+                const b=createNoiseBuffer(); const n=audioCtx.createBufferSource(); n.buffer=b; n.loop=true;
+                const f=audioCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=500;
+                const p=audioCtx.createStereoPanner(); const pl=audioCtx.createOscillator(); pl.frequency.value=0.2; 
+                pl.connect(p.pan); pl.start();
+                n.connect(f); f.connect(p); p.connect(gn); n.start();
+
+            } else if (type === 'drone') {
+                [110, 164.81, 220].forEach((fr, i) => {
+                    const o=audioCtx.createOscillator(); o.type='triangle'; o.frequency.value=fr; o.detune.value = (i-1)*5; 
+                    const g=audioCtx.createGain(); g.gain.value=0.1; o.connect(g); g.connect(gn); o.start();
+                });
+
+            } else if (type === 'nirvana') {
+                const o=audioCtx.createOscillator(); o.type='sine'; o.frequency.value=528;
+                const p=audioCtx.createStereoPanner(); const l=audioCtx.createOscillator(); l.frequency.value=0.2; l.connect(p.pan);
+                o.connect(p); p.connect(gn); o.start(); l.start();
+
+            } else if (type === 'delta') {
+                const o1=audioCtx.createOscillator(); o1.frequency.value=100; const o2=audioCtx.createOscillator(); o2.frequency.value=102;
+                const p1=audioCtx.createStereoPanner(); p1.pan.value=-1; const p2=audioCtx.createStereoPanner(); p2.pan.value=1;
                 o1.connect(p1); p1.connect(gn); o2.connect(p2); p2.connect(gn); o1.start(); o2.start();
             }
         }
 
+        // --- 5. INITIALIZATION & CONTROLS ---
         document.getElementById('btnInit').addEventListener('click', async () => {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                ['void','orbit','rain','delta','brown'].forEach(t=>{ nodes[t]=audioCtx.createGain(); nodes[t].gain.value=0; nodes[t].connect(audioCtx.destination); });
+                
+                // --- SAFETY LIMITER (COMPRESSOR) ---
+                const limiter = audioCtx.createDynamicsCompressor();
+                limiter.threshold.value = -12;
+                limiter.knee.value = 40;
+                limiter.ratio.value = 12;
+                limiter.connect(audioCtx.destination);
+                
+                // Initialize nodes connected to Limiter
+                allSounds.forEach(t => { nodes[t]=audioCtx.createGain(); nodes[t].gain.value=0; nodes[t].connect(limiter); });
+                
+                // Start Engines
                 createVoidSource(nodes['void']); createOrbitSource(nodes['orbit']);
-                createOrganicSource('rain',nodes['rain']); createOrganicSource('delta',nodes['delta']); createOrganicSource('brown',nodes['brown']);
+                createOrganicSource('rain', nodes['rain']); createOrganicSource('wind', nodes['wind']);
+                createOrganicSource('fire', nodes['fire']); createOrganicSource('drone', nodes['drone']);
+                createOrganicSource('nirvana', nodes['nirvana']); createOrganicSource('delta', nodes['delta']);
+                createOrganicSource('brown', nodes['brown']);
             }
             try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch(e){}
             const ov=document.getElementById('startOverlay'); ov.style.opacity=0; setTimeout(()=>ov.style.display='none',700);
             activateNeuroDrop();
         });
 
+        // Breathing Logic
+        const btnBreathe = document.getElementById('btnBreathe');
+        const glowBg = document.getElementById('glowBg');
+        const breatheGuide = document.getElementById('breatheGuide');
+        const breathText = document.getElementById('breathText');
+        
+        btnBreathe.addEventListener('click', () => {
+            glowBg.classList.toggle('breathing-mode');
+            breatheGuide.classList.toggle('hidden');
+            if(glowBg.classList.contains('breathing-mode')) {
+                btnBreathe.classList.add('text-sky-400', 'border-sky-400');
+                runBreathCycle(); breathingInterval = setInterval(runBreathCycle, 19000);
+            } else {
+                btnBreathe.classList.remove('text-sky-400', 'border-sky-400');
+                clearInterval(breathingInterval); breathText.innerText = "";
+            }
+        });
+
+        function runBreathCycle() {
+            breathText.innerText = "TARIK (4s)";
+            setTimeout(() => breathText.innerText = "TAHAN (7s)", 4000);
+            setTimeout(() => breathText.innerText = "HEMBUS (8s)", 11000);
+        }
+
+        // Timer Logic
+        document.querySelectorAll('.timer-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.timer-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                if (sleepTimer) clearTimeout(sleepTimer);
+                const mins = parseInt(e.target.dataset.time);
+                if (mins > 0) {
+                    const millis = mins * 60000;
+                    document.getElementById('timerDisplay').innerText = `Stopping at ${new Date(Date.now() + millis).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+                    sleepTimer = setTimeout(() => {
+                        allSounds.forEach(t => rampVolume(t, 0, 10)); // Fade out 10s
+                        setTimeout(() => audioCtx.suspend(), 10000);
+                    }, millis);
+                } else {
+                    document.getElementById('timerDisplay').innerText = "";
+                }
+            });
+        });
+
+        // Neuro Drop Protocol
         window.activateNeuroDrop = function() {
             document.getElementById('photicLayer').style.display='block';
-            ['void','orbit','rain','delta','brown'].forEach(t=>{ if(nodes[t]){ nodes[t].gain.cancelScheduledValues(audioCtx.currentTime); rampVolume(t,0,1);} });
-            rampVolume('orbit',70,3); rampVolume('rain',25,3);
-            setTimeout(()=>{ rampVolume('orbit',0,30); rampVolume('void',65,40); },120000);
-            setTimeout(()=>{ rampVolume('void',0,60); rampVolume('rain',0,60); rampVolume('delta',85,40); rampVolume('brown',50,40); document.getElementById('photicLayer').style.display='none'; },300000);
+            allSounds.forEach(t => { if(nodes[t]) { nodes[t].gain.cancelScheduledValues(audioCtx.currentTime); rampVolume(t,0,1);} });
+            
+            console.log("🚀 Platinum Protocol");
+            rampVolume('orbit',70,3); rampVolume('rain',30,3); rampVolume('fire',10,3);
+
+            setTimeout(()=>{ rampVolume('orbit',0,30); rampVolume('void',60,40); rampVolume('wind',20,40); }, 120000);
+            setTimeout(()=>{ rampVolume('void',0,60); rampVolume('rain',0,60); rampVolume('fire',0,60); rampVolume('wind',0,60); 
+                             rampVolume('delta',80,40); rampVolume('brown',50,40); 
+                             document.getElementById('photicLayer').style.display='none'; }, 300000);
         }
+
         window.applyPreset = (p) => { if(p==='clear') { Object.values(nodes).forEach(n=>n.gain.setTargetAtTime(0,audioCtx.currentTime,0.5)); document.querySelectorAll('input[type=range]').forEach(i=>i.value=0); } }
-        function rampVolume(t,v,d) { if(!nodes[t])return; nodes[t].gain.linearRampToValueAtTime(v/100,audioCtx.currentTime+d); const el=document.querySelector(`input[data-type="${t}"]`); if(el){el.value=v;document.getElementById('vol'+t.charAt(0).toUpperCase()+t.slice(1)).innerText=v+'%';} }
+        function rampVolume(t,v,d) { if(!nodes[t])return; nodes[t].gain.linearRampToValueAtTime(v/100,audioCtx.currentTime+d); const el=document.querySelector(`input[data-type="${t}"]`); if(el){el.value=v; const l=document.getElementById('vol'+t.charAt(0).toUpperCase()+t.slice(1)); if(l) l.innerText=v+'%';} }
         document.querySelectorAll('input[type=range]').forEach(i=>{ i.addEventListener('input',(e)=>{ const t=e.target.dataset.type; nodes[t].gain.cancelScheduledValues(audioCtx.currentTime); nodes[t].gain.setTargetAtTime(e.target.value/100,audioCtx.currentTime,0.1); document.getElementById('vol'+t.charAt(0).toUpperCase()+t.slice(1)).innerText=e.target.value+'%'; }); });
     </script>
 </body>
